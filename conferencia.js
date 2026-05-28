@@ -1,9 +1,16 @@
 (function() {
-    // 🛡️ Proteção: Evita carregar duas vezes e dar erro de variável duplicada
-    if (document.getElementById('stark-kanban-container')) return;
+    // 🛡️ 1. MODO TERRA ARRASADA: Mata qualquer versão bugada presa na memória
+    var oldContainer = document.getElementById('stark-kanban-container');
+    if (oldContainer) oldContainer.remove();
+    
+    var oldStyle = document.getElementById('stark-kanban-style');
+    if (oldStyle) oldStyle.remove();
 
-    // --- 1. CSS INJETADO ---
-    const style = document.createElement('style');
+    if (window.starkInterval) clearInterval(window.starkInterval);
+
+    // --- 2. CSS INJETADO ---
+    var style = document.createElement('style');
+    style.id = 'stark-kanban-style';
     style.innerHTML = `
         #stark-kanban-container { position: fixed; bottom: 20px; right: 20px; z-index: 999999; font-family: 'Inter', sans-serif, Arial; display: flex; flex-direction: column; align-items: flex-end; }
         #stark-kanban-btn { background: #0f172a; color: #00f0ff; border: 1px solid #00f0ff; box-shadow: 0 4px 12px rgba(0, 240, 255, 0.2); padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; text-transform: uppercase; font-size: 12px; display: flex; gap: 8px; align-items: center; }
@@ -24,8 +31,8 @@
     `;
     document.head.appendChild(style);
 
-    // --- 2. ESTRUTURA HTML ---
-    const container = document.createElement('div');
+    // --- 3. ESTRUTURA HTML ---
+    var container = document.createElement('div');
     container.id = 'stark-kanban-container';
     container.innerHTML = `
         <div id="stark-kanban-panel">
@@ -42,28 +49,28 @@
     `;
     document.body.appendChild(container);
 
-    // --- 3. LÓGICA DE REDE E CLIQUES ---
-    var URL_API = 'http://192.168.0.87:3000/pedidos';
+    // --- 4. LÓGICA DE REDE E CLIQUES (100% blindada) ---
+    var urlServidor = 'http://192.168.0.87:3000/pedidos';
 
-    const btnToggle = document.getElementById('stark-kanban-btn');
-    const panel = document.getElementById('stark-kanban-panel');
-    const btnClose = document.getElementById('stark-close');
-    const btnAdd = document.getElementById('btn-add-pedido');
-    const divLista = document.getElementById('stark-lista');
-    const spanQtd = document.getElementById('stark-qtd');
+    var btnToggle = document.getElementById('stark-kanban-btn');
+    var panel = document.getElementById('stark-kanban-panel');
+    var btnClose = document.getElementById('stark-close');
+    var btnAdd = document.getElementById('btn-add-pedido');
+    var divLista = document.getElementById('stark-lista');
+    var spanQtd = document.getElementById('stark-qtd');
 
     async function renderizarLista() {
         try {
-            const resposta = await fetch(URL_API);
-            let dbRede = await resposta.json();
+            var resposta = await fetch(urlServidor);
+            var dbRede = await resposta.json();
             
             spanQtd.innerText = dbRede.length;
             divLista.innerHTML = '';
             
             dbRede.forEach(p => {
-                const isHoje = p.data.includes(new Date().toLocaleDateString('pt-BR'));
-                const corBolinha = isHoje ? '#22c55e' : '#ef4444';
-                const sombra = isHoje ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)';
+                var isHoje = p.data.includes(new Date().toLocaleDateString('pt-BR'));
+                var corBolinha = isHoje ? '#22c55e' : '#ef4444';
+                var sombra = isHoje ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)';
 
                 divLista.innerHTML += `
                     <div class="stark-card">
@@ -94,11 +101,11 @@
     btnClose.onclick = () => panel.style.display = 'none';
 
     btnAdd.onclick = async () => {
-        const els = Array.from(document.querySelectorAll('td, span')).map(e => e.innerText.trim());
-        let idEncontrado = null;
-        let cliEncontrado = "Cliente Desconhecido";
+        var els = Array.from(document.querySelectorAll('td, span')).map(e => e.innerText.trim());
+        var idEncontrado = null;
+        var cliEncontrado = "Cliente Desconhecido";
 
-        for (let i = 0; i < els.length; i++) {
+        for (var i = 0; i < els.length; i++) {
             if (/^\d{4,6}$/.test(els[i])) { 
                 idEncontrado = els[i];
                 if (els[i+2]) cliEncontrado = els[i+2]; 
@@ -106,14 +113,14 @@
             }
         }
 
-        const idFinal = prompt("Confirme o número do pedido para Conferência:", idEncontrado || "");
+        var idFinal = prompt("Confirme o número do pedido para Conferência:", idEncontrado || "");
         if (!idFinal) return;
 
-        const dataAtual = new Date().toLocaleDateString('pt-BR');
+        var dataAtual = new Date().toLocaleDateString('pt-BR');
         
         try {
-            const res = await fetch(URL_API);
-            let dbAtualizado = await res.json();
+            var res = await fetch(urlServidor);
+            var dbAtualizado = await res.json();
             
             dbAtualizado = dbAtualizado.filter(x => x.id !== idFinal);
             dbAtualizado.unshift({
@@ -123,7 +130,7 @@
                 previsao: "30/06/2026"
             });
 
-            await fetch(URL_API, {
+            await fetch(urlServidor, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dbAtualizado)
@@ -137,7 +144,7 @@
 
     renderizarLista();
 
-    setInterval(() => {
+    window.starkInterval = setInterval(() => {
         if (panel.style.display === 'flex') {
             renderizarLista();
         }
