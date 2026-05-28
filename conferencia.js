@@ -43,7 +43,7 @@
     document.body.appendChild(container);
 
     // --- 3. LÓGICA DE REDE E CLIQUES ---
-    const URL_API = 'http://192.168.0.87:3000/pedidos';
+    var URL_API = 'http://192.168.0.87:3000/pedidos';
 
     const btnToggle = document.getElementById('stark-kanban-btn');
     const panel = document.getElementById('stark-kanban-panel');
