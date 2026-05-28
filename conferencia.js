@@ -41,8 +41,15 @@ async function renderizarLista() {
     }
 }
 
-// Abre e fecha o painel
-btnToggle.onclick = () => panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+// Abre e fecha o painel (e atualiza a lista ao abrir)
+btnToggle.onclick = () => {
+    if (panel.style.display === 'flex') {
+        panel.style.display = 'none';
+    } else {
+        renderizarLista(); // Busca os dados mais novos na rede
+        panel.style.display = 'flex';
+    }
+};
 btnClose.onclick = () => panel.style.display = 'none';
 
 // Captura e salva no servidor
@@ -94,3 +101,10 @@ btnAdd.onclick = async () => {
 
 // Renderiza ao carregar a página
 renderizarLista();
+
+// Timer: Atualiza a lista automaticamente a cada 10 segundos se o painel estiver aberto
+setInterval(() => {
+    if (panel.style.display === 'flex') {
+        renderizarLista();
+    }
+}, 10000);
